@@ -21,6 +21,15 @@ class OzonAdapter:
         except Exception as e:
             raise ProductNotFound()
         return response['result']
+
+    async def get_product_description(self, sku):
+        try:
+            response = self.client.get_products_description({
+                'offer_id': sku,
+            })
+        except Exception as e:
+            raise ProductNotFound()
+        return response['result']
     
     async def test_token(self):
         try:

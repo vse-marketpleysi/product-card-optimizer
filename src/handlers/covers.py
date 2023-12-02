@@ -35,7 +35,6 @@ class CoversState(StatesGroup):
 
 button_names = [k for k, v in string_to_effect.items()]
 
-
 AFTER_CHECKOUT_KEYBOARD = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text='Загрузить видеообложку на Озон')],
@@ -161,3 +160,13 @@ async def cmd_choose_sku(message: types.Message, state: FSMContext):
 
     if is_success:
         await message.answer('Выберите опцию:', reply_markup=CHOOSE_KEYBOARD)
+
+
+@covers_router.message(F.text == 'Улучшить описание товара')
+async def cmd_choose_sku(message: types.Message, state: FSMContext):
+    pass
+
+
+@covers_router.message(F.text == 'Создать инфографику')
+async def cmd_choose_sku(message: types.Message, state: FSMContext):
+    pass
