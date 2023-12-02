@@ -1,4 +1,5 @@
 import logging
+
 import configobj
 
 from aiogram import types, Router, F
@@ -29,18 +30,18 @@ START_KEYBOARD = ReplyKeyboardMarkup(
         [
             KeyboardButton(text='Добавить токен Озон')
         ],
-        [
-            KeyboardButton(text='Добавить изображения вручную')
-        ],
+        # [
+        #     KeyboardButton(text='Добавить изображения вручную')
+        # ],
         [
             KeyboardButton(text='Выбрать продукт на Озон')
         ],
-        [
-            KeyboardButton(text='Купить токены')
-        ],
-        [
-            KeyboardButton(text='Показать токены')
-        ],
+        # [
+        #     KeyboardButton(text='Купить токены')
+        # ],
+        # [
+        #     KeyboardButton(text='Показать токены')
+        # ],
     ],
     resize_keyboard=True
 )

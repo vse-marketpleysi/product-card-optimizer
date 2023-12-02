@@ -18,7 +18,6 @@ from aiogram.fsm.storage.redis import RedisStorage
 from aioredis.client import Redis
 
 from src.handlers.common import common_router
-from src.handlers.payments import payments_router
 from src.handlers.covers import covers_router
 from src.of_logging import logging_middleware
 
@@ -82,7 +81,6 @@ async def main(loop):
     dp.update.outer_middleware(logging_middleware)
 
     dp.include_router(common_router)
-    dp.include_router(payments_router)
     dp.include_router(covers_router)
 
     await set_commands(bot)
