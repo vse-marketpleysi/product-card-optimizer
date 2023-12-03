@@ -75,8 +75,8 @@ async def main(loop):
 
     create_json_if_not_exist(BOT_DB, json_fields)
 
-    redis_client = Redis.from_url("redis://localhost:6379/5")
-    dp = Dispatcher(storage=RedisStorage(redis=redis_client))
+    # redis_client = Redis.from_url("redis://localhost:6379/5")
+    dp = Dispatcher(storage=MemoryStorage())
     
     dp.update.outer_middleware(logging_middleware)
 
