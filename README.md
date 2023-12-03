@@ -1,4 +1,7 @@
 # product-card-optimizer
+## Ссылка на MVP бота в Телеграм
+[@ProductCardOptimizerBot](https://t.me/ProductCardOptimizerBot)
+
 `python3.10`
 ## Install
 `python -m venv venv`  
