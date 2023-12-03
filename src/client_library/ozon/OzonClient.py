@@ -62,7 +62,7 @@ class OzonClient:
         return self.request("POST", "/v2/product/info", body)
 
     def get_products_description(self, body):
-        return self.request("POST", "v1/product/info/description", body)
+        return self.request("POST", "/v1/product/info/description", body)
 
     def get_fbs_postings(self, body):
         return self.request("POST", "/v3/posting/fbs/list", body)

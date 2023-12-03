@@ -37,7 +37,7 @@ button_names = [k for k, v in string_to_effect.items()]
 
 AFTER_CHECKOUT_KEYBOARD = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text='Загрузить видеообложку на Озон')],
+        [KeyboardButton(text='Загрузить инфографику на Озон')],
         [KeyboardButton(text='Отмена')]
     ],
     resize_keyboard=True)
@@ -112,17 +112,15 @@ async def request_token(message: types.Message, state: FSMContext):
 
 @covers_router.message(F.text == 'Выбрать продукт на Озон')
 async def cmd_choose_ozon_product(message: types.Message, state: FSMContext):
-    await state.update_data(video_path=None)
-
     bot_db = load_json(BOT_DB)
     if bot_db['user_info'][str(message.from_user.id)]['ozon_token']:
-        await message.answer('Напишите артикул товара и мы скачаем его изображения:', reply_markup=CANCEL_KEYBOARD)
+        await message.answer('Напишите артикул товара, чтобы мы смогли изучить карточку:', reply_markup=CANCEL_KEYBOARD)
         await state.set_state(CoversState.choose_sku)
     else:
         await request_token(message, state)
 
 
-async def choose_sku_and_load_images(message: types.Message, state: FSMContext):
+async def choose_sku_and_load_data(message: types.Message, state: FSMContext):
     bot_db = load_json(BOT_DB)
     ozon_token = bot_db['user_info'][str(message.from_user.id)]['ozon_token']
     ozon_adapter = OzonAdapter(ozon_token)
@@ -139,6 +137,17 @@ async def choose_sku_and_load_images(message: types.Message, state: FSMContext):
     if product:
         product_images = product['images']
 
+    try:
+        description = await ozon_adapter.get_product_description(sku)
+    except ProductNotFound:
+        description = None
+    except:
+        cannot_access_store = True
+
+    if description:
+        product_name = description['name']
+        product_description = description['description']
+
     if cannot_access_store:
         await message.answer('Не смогли зайти в магазин, проверьте что введенный токен актуален', reply_markup=CANCEL_KEYBOARD)
     elif product is None:
@@ -146,7 +155,11 @@ async def choose_sku_and_load_images(message: types.Message, state: FSMContext):
     elif len(product_images) == 0:
         await message.answer('У выбранного товара нет изображений', reply_markup=CANCEL_KEYBOARD)
     else:
-        await state.update_data(sku=sku, images=product_images)
+        await state.update_data(sku=sku,
+                                images=product_images,
+                                name=product_name,
+                                description=product_description
+                                )
         await message.answer('Товар найден')
         return True
     return False
@@ -154,19 +167,33 @@ async def choose_sku_and_load_images(message: types.Message, state: FSMContext):
 
 @covers_router.message(CoversState.choose_sku)
 async def cmd_choose_sku(message: types.Message, state: FSMContext):
-    await state.update_data(video_path=None)
-
-    is_success = await choose_sku_and_load_images(message, state)
+    is_success = await choose_sku_and_load_data(message, state)
 
     if is_success:
+        await state.set_state()
         await message.answer('Выберите опцию:', reply_markup=CHOOSE_KEYBOARD)
 
 
 @covers_router.message(F.text == 'Улучшить описание товара')
-async def cmd_choose_sku(message: types.Message, state: FSMContext):
-    pass
+async def improve_product_description(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    product_name = data['name']
+    product_description = data['description']
+    product_image = data['images']
 
+
+def get_infographic_for_product(image_url, product_description):
+    pass
 
 @covers_router.message(F.text == 'Создать инфографику')
-async def cmd_choose_sku(message: types.Message, state: FSMContext):
-    pass
+async def create_infographics(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    product_name = data['name']
+    product_description = data['description']
+    product_image = data['images'][0]
+
+    infographic_path = get_infographic_for_product(product_image, product_description)
+
+    infographic = open(infographic_path, 'rb')
+
+    await message.answer_photo(infographic, 'Инфографика', reply_markup=AFTER_CHECKOUT_KEYBOARD)
