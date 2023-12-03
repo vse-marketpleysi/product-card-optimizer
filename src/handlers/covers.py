@@ -12,12 +12,12 @@ import traceback
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, FSInputFile
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, FSInputFile, URLInputFile
 from aiogram.filters import Command
 
 from src.utils.json_utils import load_json, save_json
 from src.handlers.common import START_KEYBOARD
-from src.engine.animation_engine import apply_effect, Effect, get_effect_from_string, string_to_effect, effects_accepting_many_images
+from src.engine.infographics_engine import get_infographic_for_product, gigachat_complete
 from src.adapters.exceptions import ProductNotFound
 from src.adapters.OzonAdapter import OzonAdapter
 
@@ -33,7 +33,6 @@ class CoversState(StatesGroup):
     token_edit = State()
     choose_sku = State()
 
-button_names = [k for k, v in string_to_effect.items()]
 
 AFTER_CHECKOUT_KEYBOARD = ReplyKeyboardMarkup(
     keyboard=[
@@ -144,6 +143,8 @@ async def choose_sku_and_load_data(message: types.Message, state: FSMContext):
     except:
         cannot_access_store = True
 
+    product_name = ''
+    product_description = ''
     if description:
         product_name = description['name']
         product_description = description['description']
@@ -181,9 +182,9 @@ async def improve_product_description(message: types.Message, state: FSMContext)
     product_description = data['description']
     product_image = data['images']
 
-
-def get_infographic_for_product(image_url, product_description):
-    pass
+    prompt_template = 'Напиши идеальное длинное описание товара с буллет поинтами. \n\nНазвание товара:\n%s\nСтарое описание товара:\n%sНовое описание товара:\n'
+    answer = gigachat_complete(prompt_template % (product_name, product_description))
+    await message.answer(answer)
 
 @covers_router.message(F.text == 'Создать инфографику')
 async def create_infographics(message: types.Message, state: FSMContext):
@@ -191,9 +192,13 @@ async def create_infographics(message: types.Message, state: FSMContext):
     product_name = data['name']
     product_description = data['description']
     product_image = data['images'][0]
+    
+    image = URLInputFile(product_image, filename='sas2.png')
 
-    infographic_path = get_infographic_for_product(product_image, product_description)
+    await message.answer('Мы начали создавать инфографику! Подождите одну минуту')
+    await message.answer_photo(image, caption=f'Найденный товар')
 
-    infographic = open(infographic_path, 'rb')
-
-    await message.answer_photo(infographic, 'Инфографика', reply_markup=AFTER_CHECKOUT_KEYBOARD)
+    infographic_path = get_infographic_for_product(product_image, product_name, product_description)
+    # infographic_path = 'tmp.jpg'
+    image = FSInputFile(infographic_path, filename='sas.png')
+    await message.answer_photo(image, caption=f'Ваша инфографика готова!', reply_markup=AFTER_CHECKOUT_KEYBOARD)
